@@ -2,7 +2,10 @@ module github.com/sharasha07/api-stack
 
 go 1.27.0
 
-require github.com/charmbracelet/huh v1.0.0
+require (
+	github.com/charmbracelet/huh v1.0.0
+	golang.org/x/mod v0.41.0
+)
 
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
