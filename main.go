@@ -3,53 +3,45 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/charmbracelet/huh"
-	"golang.org/x/mod/module"
 )
 
 func main() {
 	var inp input
 
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title("Enter a go module name:").
-				Value(&inp.moduleName).
-				Validate(func(str string) error {
-					if err := module.CheckPath(str); err != nil {
-						return fmt.Errorf("invalid go module path: %w", err)
-					}
-
-					return nil
-				}),
-			huh.NewConfirm().
-				Title("Add a Makefile for common commands?").
-				Value(&inp.wantMakefile),
-		),
-
-		huh.NewGroup(
-			huh.NewSelect[envLoader]().
-				Title("load environment variables:").
-				Options(
-					huh.NewOption("none", noLoader),
-					huh.NewOption(".env + github.com/joho/godotenv/tree/main (load .env variables into process environment)",
-						godotenv),
-					huh.NewOption(".env + dotenvx CLI (load .env without Go code dependencies)", dotenvx),
-				).
-				Value(&inp.env.loader),
-
-			huh.NewSelect[envParser]().
-				Title("parse environment variables:").
-				Options(
-					huh.NewOption("none", noParser),
-					huh.NewOption("github.com/caarlos0/env/v11 (map environment variables into typed Go struct)", caarlosEnv),
-				).
-				Value(&inp.env.parser),
-		),
-	)
-
-	if err := form.Run(); err != nil {
+	if err := getInput(&inp).Run(); err != nil {
 		log.Fatal(err)
 	}
+
+	for {
+		err := generate(inp)
+		if err == nil {
+			fmt.Println("Successfully generated! Check it out!")
+			return
+		}
+
+		fmt.Fprintln(os.Stderr, err)
+
+		retry, err := confirmRetry()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if !retry {
+			return
+		}
+	}
+}
+
+func confirmRetry() (bool, error) {
+	var retry bool
+
+	err := huh.NewConfirm().
+		Title("Try generating again?").
+		Value(&retry).
+		Run()
+
+	return retry, err
 }
