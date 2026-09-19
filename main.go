@@ -23,6 +23,9 @@ func main() {
 
 					return nil
 				}),
+			huh.NewConfirm().
+				Title("Add a Makefile for common commands?").
+				Value(&inp.wantMakefile),
 		),
 
 		huh.NewGroup(
@@ -43,17 +46,6 @@ func main() {
 					huh.NewOption("github.com/caarlos0/env/v11 (map environment variables into typed Go struct)", caarlosEnv),
 				).
 				Value(&inp.env.parser),
-
-			huh.NewSelect[envSecretManager]().
-				Title("manage secrets:").
-				Options(
-					huh.NewOption("none", noSecretManager),
-					huh.NewOption("dotenvx (encrypt .env secrets while keeping .env workflow)", dotenvxSecrets),
-					huh.NewOption("AWS Secrets Manager", awsSecretsManager),
-					huh.NewOption("Google Cloud Secret Manager", googleCloudSecretManager),
-					huh.NewOption("Azure Key Vault", azureKeyVault),
-				).
-				Value(&inp.env.secretManager),
 		),
 	)
 
